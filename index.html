@@ -9,11 +9,20 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
     <style>
+        :root {
+            --bg-color: #020617;
+            --card-color: rgba(15, 23, 42, 0.6);
+            --border-color: rgba(30, 41, 59, 0.8);
+            --text-color: #94a3b8;
+            --title-color: #ffffff;
+            --highlight-color: #38bdf8;
+        }
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #020617; /* slate-950 */
-            color: #94a3b8; /* slate-400 */
+            background-color: var(--bg-color);
+            color: var(--text-color);
             background-image: radial-gradient(circle at top right, rgba(29, 78, 216, 0.3), transparent 40%),
                               radial-gradient(circle at bottom left, rgba(109, 40, 217, 0.2), transparent 50%);
         }
@@ -30,10 +39,14 @@
             @apply mt-3 text-lg leading-8 text-slate-400;
         }
         .card {
-            @apply bg-slate-900/60 border border-slate-800/80 rounded-xl shadow-lg backdrop-blur-sm transition-all duration-300;
+            background-color: var(--card-color);
+            @apply border border-slate-800/80 rounded-xl shadow-lg backdrop-blur-sm transition-all duration-300;
         }
-        .prose { color: #94a3b8; }
-        .prose h1, .prose h2, .prose h3, .prose h4, .prose h5, .prose h6 { color: white; }
+        .card:hover {
+            @apply transform scale-[1.02] shadow-blue-500/10 border-slate-700;
+        }
+        .prose { color: var(--text-color); }
+        .prose h1, .prose h2, .prose h3, .prose h4, .prose h5, .prose h6 { color: var(--title-color); }
         .prose strong { color: #e2e8f0; }
         .prose code {
             color: #f87171; /* red-400 */
@@ -56,11 +69,8 @@
             content: '✓';
             @apply mr-3 mt-1 flex-shrink-0 text-blue-400;
         }
-        .diagram-node {
-            @apply bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-center text-white font-semibold shadow-md;
-        }
-        .diagram-arrow {
-            @apply text-slate-600 font-mono text-2xl;
+        .mermaid-diagram {
+            @apply bg-slate-900/80 border border-slate-800 rounded-lg p-4 flex justify-center items-center;
         }
     </style>
 </head>
@@ -94,27 +104,7 @@
             { "id": "use_case_analyst", "name": "Use Case: Earnings Analyst" }
         ],
         "home": {
-            "diagram": {
-                "id": "llm_system_anatomy",
-                "nodes": [
-                    {"id": "user", "label": "User"},
-                    {"id": "prompt", "label": "Prompt (Task/Context/Rules)"},
-                    {"id": "retrieval", "label": "Retrieval (Indexes & Filters)"},
-                    {"id": "tools", "label": "Tools (Lookups/Calcs)"},
-                    {"id": "guardrails", "label": "Guardrails (Safety/Policy)"},
-                    {"id": "evals", "label": "Evals & Monitoring"},
-                    {"id": "answer", "label": "Answer + Citations"}
-                ],
-                "edges": [
-                    ["user","prompt"], ["prompt","retrieval"], ["prompt","tools"],
-                    ["retrieval","prompt"], ["tools","prompt"], ["prompt","guardrails"],
-                    ["guardrails","answer"], ["answer","evals"], ["evals","prompt"]
-                ]
-            },
-            "pathways": {
-                "exec": "Value, risks, KPIs, launch gates (1-page summary).",
-                "eng": "Patterns, specs, and step-by-step checklists."
-            }
+            "diagram_spec": "graph TD\n    User --> A[Prompt Engineering]\n    A --> B{Retrieval}\n    A --> C{Tools}\n    B --> A\n    C --> A\n    A --> D[Guardrails]\n    D --> E[Answer + Citations]\n    E --> F(Evals & Monitoring)\n    F --> A\n\n    style User fill:#2563eb,stroke:#fff,stroke-width:2px\n    style E fill:#16a34a,stroke:#fff,stroke-width:2px"
         },
         "prompt_engineering": {
             "principles": [
@@ -140,176 +130,60 @@
             }
         },
         "rag_foundations": {
-            "diagram": {
-                "id": "retrieval_pipeline",
-                "nodes": [
-                    {"id":"ingest","label":"Ingestion"},
-                    {"id":"index","label":"Indexing"},
-                    {"id":"retrieve","label":"Retrieval"},
-                    {"id":"rerank","label":"Reranking"},
-                    {"id":"generate","label":"Generation"},
-                    {"id":"post","label":"Post-processing"},
-                    {"id":"cite","label":"Citations"}
-                ],
-                "edges": [
-                    ["ingest","index"],["index","retrieve"],["retrieve","rerank"],
-                    ["rerank","generate"],["generate","post"],["post","cite"]
-                ]
-            },
-            "choices": ["Chunking method", "hybrid vs single retrieval", "filters", "reranking", "citation style (page/slide/time)."],
-            "ops": ["Freshness cadence", "privacy & compliance redaction", "provenance & poisoning defense."]
+            "diagram_spec": "graph LR\n    A[Ingestion] --> B[Indexing]\n    B --> C[Retrieval]\n    C --> D[Reranking]\n    D --> E[Generation]\n    E --> F[Post-processing]\n    F --> G[Citations]\n\n    subgraph Knowledge Base\n        A\n        B\n    end\n    subgraph Query Time\n        C\n        D\n        E\n        F\n        G\n    end"
         },
         "multimodal_rag": {
-            "ingestion": [
-                {"modality": "Images & Charts", "steps": ["OCR", "concise captions", "keywords."]},
-                {"modality": "Slides & PDFs", "steps": ["slide titles", "speaker notes", "figure captions", "tables summarized."]},
-                {"modality": "Audio & Video", "steps": ["transcripts with timestamps", "optional speaker notes/chapters."]}
-            ],
-            "diagram": {
-                "id":"multimodal_ingestion_map",
-                "lanes":[
-                    {"modality":"Images/Charts","steps":["OCR","Caption","Keywords","Store refs"]},
-                    {"modality":"Slides/PDF","steps":["Titles","Notes","Figure captions","Table summaries"]},
-                    {"modality":"Audio/Video","steps":["Transcript (timestamps)","Speakers","Scenes/Chapters"]}
-                ],
-                "mergeInto":"Searchable Knowledge"
-            },
-            "patterns": ["Text→Image", "Text→Video (time-coded)", "Image→Text (diagram similarity)."],
-            "grounding": "Cite figure numbers/slide numbers/timestamps; evidence-first answers."
+            "diagram_spec": "graph TD\n    subgraph Sources\n        A[Images/Charts]\n        B[Slides/PDFs]\n        C[Audio/Video]\n    end\n    subgraph Ingestion Pipelines\n        A --> A1[OCR]\n        A1 --> A2[Caption]\n        A2 --> A3[Keywords]\n        B --> B1[Titles & Notes]\n        B1 --> B2[Figure Captions]\n        B2 --> B3[Table Summaries]\n        C --> C1[Timestamped Transcript]\n        C1 --> C2[Speaker Labels]\n        C2 --> C3[Scene/Chapters]\n    end\n    subgraph Unified Search\n        D((Searchable Knowledge))\n    end\n    A3 --> D\n    B3 --> D\n    C3 --> D"
         },
-        "evals_monitoring": {
-            "offline": ["Golden sets", "rubrics for relevance/groundedness/exactness/tone/safety", "adversarial cases", "periodic human spot checks."],
-            "online": ["Quality signals (edits, thumbs)", "operational signals (latency percentiles, retrieval hit rate, cache hit rate)", "business KPIs (resolution, deflection, satisfaction, cost/session).", "Controlled experiments."],
-            "gates": ["Targets met on golden sets", "acceptable live behavior", "monitoring live", "rollback plan."],
-            "golden_set_example": {
-                "id":"finqa_017",
-                "prompt":"Summarize Q2 performance and cite filings or slides.",
-                "context_refs":["10-Q_2025_Q2#p5","Deck_Q2#s14","Earnings_Call#00:12:40-00:14:00"],
-                "expected":{
-                    "bullets":3,
-                    "must_include":["revenue growth %","operating margin","guidance change"],
-                    "must_cite":true
-                },
-                "severity":"high"
-            },
-            "rubric": [
-                {"name": "Relevance", "def": "answer addresses the question directly; unrelated facts penalized."},
-                {"name": "Groundedness", "def": "every claim traceable to cited sources; no speculative language."},
-                {"name": "Exactness (extraction tasks)", "def": "numeric values and named fields match sources."},
-                {"name": "Style", "def": "follows requested format, tone, and length."},
-                {"name": "Safety", "def": "no sensitive data leakage; includes required disclaimers."}
+        "agents_tools": {
+            "concepts": [
+                "**Function Calling:** The core mechanism allowing LLMs to execute bounded, predictable actions through code.",
+                "**Decision Logic:** The agent must decide *when* to use a tool, *which* tool to use, and with *what* arguments.",
+                "**Execution Order:** Critical design choice: retrieve first then use a tool (e.g., calculator on retrieved numbers), or use a tool first (e.g., get current stock price) then retrieve related news.",
+                "**Guardrails:** Agents must operate within strict boundaries. A `delete_file` tool is dangerous; a `read_file_line` tool is safer.",
+                "**Error Handling:** Robust agents need built-in logic for timeouts, retries, and fallbacks when tools fail or return unexpected results."
             ]
         },
-        "performance_cost": {
-            "levers": ["Agree on an end-to-end latency budget", "cache reusable instructions and frequent queries", "keep context concise", "tune how many items to retrieve", "define freshness per source."],
-            "budget": {
-                "target_ms": 2000,
-                "allocation": {
-                    "retrieval": 500,
-                    "reranking": 300,
-                    "generation": 900,
-                    "post_processing": 300
+        "safety_governance": {
+            "risks": [
+                {"name": "Prompt Injection", "mitigation": "Sanitize inputs, use delimiters, and have a separate, privileged system prompt that can't be easily overridden by user context."},
+                {"name": "Data Exfiltration", "mitigation": "Implement strict output parsing and redaction. Never let the LLM return raw tool outputs directly to the user."},
+                {"name": "Retrieval Poisoning", "mitigation": "Vet data sources. Maintain provenance records for all indexed content. Use allowlists for trusted domains."},
+                {"name": "Unsafe Content Generation", "mitigation": "Apply safety classifiers to both inputs and outputs. Use constitutional AI principles to define strict behavioral guardrails."}
+            ],
+            "governance": [
+                "**Audit Trails:** Log every prompt, retrieved document set, tool call, and final output for traceability.",
+                "**Tenant Scoping:** In multi-tenant systems, ensure retrieval and tool use are strictly confined to the user's authorized data scope.",
+                "**Retention & Deletion:** Implement and enforce data retention policies for logs and indexed content to comply with privacy regulations."
+            ]
+        },
+        "playgrounds": {
+            "title": "Read-Only Playgrounds",
+            "subtitle": "Illustrative examples showing key concepts in action. These are static snapshots, not live demos.",
+            "examples": [
+                {
+                    "title": "RAG Walkthrough: From Question to Answer",
+                    "description": "See how a question is broken down, how snippets are retrieved, and how they are synthesized into a final, cited answer.",
+                    "steps": [
+                        "<strong>User Question:</strong> \"What was our Q2 operating margin and what drove it?\"",
+                        "<strong>Retrieval:</strong> Fetches snippets from a 10-Q ('operating margin was 14.2%') and an earnings call transcript ('...driven by enterprise renewals...').",
+                        "<strong>Synthesis:</strong> Combines the snippets into a coherent answer.",
+                        "<strong>Final Answer:</strong> \"Our Q2 operating margin was 14.2% [10-Q, p.5], primarily driven by strong enterprise renewals [Earnings Call, 00:12:58].\""
+                    ]
                 },
-                "degrade_strategy": ["skip_rerank","reduce_top_k","shorter_answer"]
-            }
+                {
+                    "title": "Reranking: Before & After",
+                    "description": "Demonstrates how a reranking step improves the quality of retrieved context before it reaches the LLM.",
+                    "steps": [
+                        "<strong>Initial Retrieval (Top 3):</strong><br>1. [Irrelevant] A generic definition of 'operating margin'.<br>2. [Relevant] '...operating margin was 14.2%...'<br>3. [Vaguely Relevant] A press release mentioning a new product.",
+                        "<strong>After Reranking (Top 3):</strong><br>1. [Relevant] '...operating margin was 14.2%...'<br>2. [Relevant] A slide title: 'Q2 Margin Performance'.<br>3. [Irrelevant] A generic definition of 'operating margin'."
+                    ]
+                }
+            ]
         },
-        "patterns_cookbook": [
-            {"name": "Grounded Q&A (Text)", "flow": "Retrieve → Rerank → Answer w/ citations → Validate.", "pitfalls": "Missing citations; hallucinated details."},
-            {"name": "Chart Q&A (Image)", "flow": "Find chart → Brief description → Extract value/trend → Cite figure.", "pitfalls": "Misreading axes; low-quality OCR."},
-            {"name": "Video “Moment Finder”", "flow": "Search transcript → Return timestamped snippet → 1-line context → Cite timecode.", "pitfalls": "Vague pointers; whole-transcript dumps."},
-            {"name": "Structured Extraction", "flow": "Name fields and rules → Allow “unknown” → Validate.", "pitfalls": "Ambiguous field definitions."},
-            {"name": "Decision + Tool", "flow": "Classify intent → If lookup/calc, perform → Return result + rationale.", "pitfalls": "Tool overuse; unclear fallbacks."},
-            {"name": "Multi-hop QA", "flow": "Plan steps → Retrieve per step → Synthesize → Cite each source.", "pitfalls": "Missing a hop; shallow synthesis."}
-        ],
-        "templates_checklists": {
-            "prompt_pr": ["One-sentence task", "Context & assumptions explicit", "Output rules & limits defined", "2–3 examples", "Safety rules embedded", "Golden cases pass threshold", "Version + owner updated"],
-            "rag_pipeline": ["Chunking method justified", "Retrieval approach & filters chosen", "Rerank improves relevance without breaking latency goals", "Citations include page/slide/time", "Freshness cadence set", "Poisoning/injection tests pass"],
-            "launch_gate": ["Offline targets met", "Live metrics acceptable (or justified trade)", "Monitoring active; alerts routed", "Rollback plan documented/tested"]
-        },
-        "glossary": {
-            "Prompt": "The input given to an LLM, including instructions, context, and examples.",
-            "Context": "Background information provided in a prompt to help the model generate a relevant answer.",
-            "RAG": "Retrieval-Augmented Generation. A method to ground LLM answers by first retrieving relevant documents.",
-            "Chunking": "The process of breaking down large documents into smaller, indexed pieces for retrieval.",
-            "Reranking": "Re-ordering retrieved chunks to place the most relevant ones at the top before generation.",
-            "Golden Set": "A curated, high-quality dataset of inputs and expected outputs used for regression testing.",
-            "Groundedness": "A measure of whether the model's output is factually consistent with the provided source documents.",
-            "Hallucination": "When an LLM generates factually incorrect or nonsensical information not based on its input data.",
-            "Injection": "A security risk where malicious instructions are hidden in input data to hijack the prompt's intent."
-        },
-        "faq": [
-            {"q": "Why not prompts alone?", "a": "Prompts alone rely on the model's internal, static knowledge, which can be outdated or wrong. RAG provides fresh, verifiable context."},
-            {"q": "Why citations?", "a": "Citations build user trust, allow for fact-checking, and provide a path to deeper information."},
-            {"q": "Do multimodal features slow things down?", "a": "They can, which is why we have latency budgets. We trade off complexity for value, and often, a chart is worth the extra processing time."},
-            {"q": "When is it “production-ready”?", "a": "When it meets pre-defined quality gates on golden sets, shows acceptable performance on live traffic, and has a monitoring and rollback plan."},
-            {"q": "Who owns prompts and pipelines?", "a": "Ownership is a partnership. Product defines the 'what,' Engineering builds the 'how,' and Ops ensures it runs reliably. Prompt specs have explicit owners."}
-        ],
         "use_case_analyst": {
             "scenario": "Product managers and finance leads ask, “How did we perform this quarter compared to last?” They want a concise answer that references slides, filings, and specific timecodes from the earnings call video.",
-            "sources": ["Quarterly deck (slides/titles/notes/figures).", "10-Q/10-K excerpts.", "Earnings call video with transcript and timestamps."],
-            "output_rules": [
-                "Exactly 5 bullets, each ≤18 words.",
-                "Include: revenue growth %, operating margin, key driver, risk/concern, and guidance change.",
-                "Cite at least two different sources, with slide numbers/pages/timecodes.",
-                "If a field is unknown, say “Unknown (no source)”."
-            ],
-            "prompt_flow": [
-                {
-                    "title": "1) Query Normalizer (Router)", "goal": "Restate the user ask and list the facts required.",
-                    "content": "You are a query normalizer.\nTask: Restate the user’s question concisely and list the required facts.\nInputs: user_question\nOutput:\n- restated_question (1 sentence)\n- required_facts (ordered list of fields to fill)\nRules:\n- Do not answer the question.\n- Keep it neutral and product-agnostic.",
-                    "example": "• restated_question: “Summarize Q2 vs Q1 performance with growth, margins, drivers, risks, and guidance changes.”\n• required_facts: [revenue_growth_pct, operating_margin, key_driver, key_risk, guidance_change]"
-                },
-                {
-                    "title": "2) Retrieval Query Builder", "goal": "Turn required facts into retrieval intents.",
-                    "content": "You are a retrieval intent builder.\nTask: For each required_fact, propose 3 search intents with filters.\nInputs: restated_question, required_facts\nOutput per fact:\n- intents: [short queries targeting filings, slides, and transcript time windows]\nRules:\n- Use domain words likely present in corpora (e.g., “operating margin”, “guidance”).\n- Include a time window if quarter or date is implied.",
-                    "example": "• operating_margin → [“operating margin Q2”, “margin trend slide”, “operating income percentage”]"
-                },
-                {
-                    "title": "3) Evidence Assembler", "goal": "Collate top snippets for each fact (text + visual).",
-                    "content": "You are an evidence assembler.\nTask: For each required_fact, list candidate snippets with source pointers.\nInputs: retrieved_snippets (from filings/slides/transcript)\nOutput per fact:\n- candidates: [{source_id, location (p#/s#/t=mm:ss), snippet_text_or_caption}]\nRules:\n- Prefer snippets that include explicit numbers or directives.\n- Keep 1–2 best candidates per fact.",
-                    "example": null
-                },
-                {
-                    "title": "4) Vision QA (for charts/figures)", "goal": "Read values or trends from a chart image.",
-                    "content": "You are a chart explainer.\nTask: Given a chart image and the user’s restated question, extract the one value or trend needed.\nInputs: chart_image, restated_question\nOutput:\n- value_or_trend (short)\n- explanation (≤20 words)\n- citation_hint (figure title or slide number)\nRules:\n- State units and time period if visible.\n- If unreadable, say “Unknown (image unclear)”.",
-                    "example": null
-                },
-                {
-                    "title": "5) Synthesizer (Final answer)", "goal": "Produce the 5 bullets with citations.",
-                    "content": "You are a financial results summarizer.\nTask: Write exactly 5 bullets (≤18 words each), covering:\n1) revenue growth %, 2) operating margin, 3) key driver, 4) key risk, 5) guidance change.\nInputs: restated_question, evidence_per_fact (text + chart findings)\nOutput:\n- bullets: [five concise bullets]\n- citations: map each bullet to at least one source pointer (page/slide/time)\nRules:\n- Use neutral tone, precise numbers, and cite at least two distinct sources overall.\n- If a required fact is missing, write “Unknown (no source)” and cite none.",
-                    "example": null
-                },
-                {
-                    "title": "6) Safety & Policy Check", "goal": "Ensure compliance before showing to users.",
-                    "content": "You are a safety and policy checker.\nTask: Scan the bullets for sensitive or speculative statements.\nInputs: bullets, citations\nOutput:\n- status: \"ok\" or \"revise\"\n- notes: if \"revise\", specify which bullet and why\nRules:\n- No forward-looking claims unless they appear in guidance and are quoted.\n- No PII. Avoid speculative verbs (“might explode”).",
-                    "example": null
-                }
-            ],
-            "diagram": {
-                "id":"earnings_flow",
-                "nodes":[
-                    {"id":"normalize","label":"Query Normalizer"},
-                    {"id":"build_intents","label":"Retrieval Query Builder"},
-                    {"id":"retrieve","label":"Retrieve Snippets"},
-                    {"id":"evidence","label":"Evidence Assembler"},
-                    {"id":"vision","label":"Vision QA (charts)"},
-                    {"id":"synthesize","label":"Synthesizer"},
-                    {"id":"safety","label":"Safety Check"},
-                    {"id":"answer","label":"Answer + Citations"}
-                ],
-                "edges":[
-                    ["normalize","build_intents"],["build_intents","retrieve"],
-                    ["retrieve","evidence"],["evidence","vision"],
-                    ["evidence","synthesize"],["vision","synthesize"],
-                    ["synthesize","safety"],["safety","answer"]
-                ]
-            },
-            "acceptance_criteria": [
-                "Contains exactly 5 bullets, each ≤18 words.",
-                "Includes revenue growth %, operating margin, a driver, a risk, and guidance.",
-                "At least two different source types cited (e.g., slide + filing or slide + timecode).",
-                "Numbers match sources; wording is neutral; no speculation."
-            ]
+            "diagram_spec": "graph TD\n    A[User Question] --> B(1. Query Normalizer)\n    B --> C(2. Retrieval Query Builder)\n    C --> D{Retrieve Snippets}\n    D --> E(3. Evidence Assembler)\n    subgraph Conditional Steps\n        E --> F(4. Vision QA for Charts)\n    end\n    E --> G(5. Synthesizer)\n    F --> G\n    G --> H(6. Safety & Policy Check)\n    H --> I[Final Answer + Citations]\n\n    style I fill:#16a34a,stroke:#fff,stroke-width:2px"
         }
     }
     </script>
@@ -319,7 +193,7 @@
         <nav class="w-64 bg-slate-900/70 backdrop-blur-sm border-r border-slate-800 fixed top-0 left-0 h-full pt-8 z-20 overflow-y-auto">
             <div class="px-6">
                 <h2 class="text-lg font-bold text-white">Prompt & RAG Playbook</h2>
-                <p class="text-xs text-slate-400">Phase-1: Content-Only</p>
+                <p class="text-xs text-slate-400">Enhanced Edition</p>
             </div>
             <div class="mt-8 space-y-1 px-4" id="navigation">
                 <!-- Links will be injected by JS -->
@@ -335,8 +209,23 @@
     </div>
 
     <script>
+        // --- MERMAID INITIALIZATION ---
+        mermaid.initialize({
+            startOnLoad: false,
+            theme: 'base',
+            themeVariables: {
+                background: '#0f172a',
+                primaryColor: '#1e293b',
+                primaryTextColor: '#e2e8f0',
+                lineColor: '#475569',
+                secondaryColor: '#334155',
+                tertiaryColor: '#1e293b'
+            }
+        });
+
         document.addEventListener('DOMContentLoaded', () => {
             const data = JSON.parse(document.getElementById('playbook-data').textContent);
+            const sitemap = JSON.parse(document.getElementById('playbook-data').textContent).sitemap;
             const navigation = document.getElementById('navigation');
             const pageContent = document.getElementById('page-content');
 
@@ -346,61 +235,72 @@
                 window.scrollTo(0, 0);
             }
 
-            function renderPage(pageId) {
+            async function renderPage(pageId) {
                 document.querySelectorAll('.nav-link').forEach(link => {
                     link.classList.toggle('active', link.getAttribute('href') === `#${pageId}`);
                 });
                 
                 let html = '';
-                switch (pageId) {
-                    case 'home': html = renderHomePage(); break;
-                    case 'prompt_engineering': html = renderPromptEngineeringPage(); break;
-                    case 'rag_foundations': html = renderRagFoundationsPage(); break;
-                    case 'multimodal_rag': html = renderMultimodalRagPage(); break;
-                    case 'evals_monitoring': html = renderEvalsPage(); break;
-                    case 'performance_cost': html = renderPerfCostPage(); break;
-                    case 'patterns_cookbook': html = renderPatternsPage(); break;
-                    case 'templates_checklists': html = renderTemplatesPage(); break;
-                    case 'glossary_faq': html = renderGlossaryFaqPage(); break;
-                    case 'use_case_analyst': html = renderUseCasePage(); break;
-                    default: html = `
-                        <h1 class="section-title">${data.sitemap.find(p => p.id === pageId)?.name || 'Page Not Found'}</h1>
+                // This is a simplified router. A real app would use a more robust solution.
+                const pageRenderers = {
+                    'home': renderHomePage,
+                    'prompt_engineering': renderPromptEngineeringPage,
+                    'rag_foundations': renderRagFoundationsPage,
+                    'multimodal_rag': renderMultimodalRagPage,
+                    'agents_tools': renderAgentsToolsPage,
+                    'evals_monitoring': () => "<h2>Evals & Monitoring</h2><p>Content from previous version.</p>", // Placeholder
+                    'performance_cost': () => "<h2>Performance & Cost</h2><p>Content from previous version.</p>", // Placeholder
+                    'safety_governance': renderSafetyGovernancePage,
+                    'patterns_cookbook': () => "<h2>Patterns Cookbook</h2><p>Content from previous version.</p>", // Placeholder
+                    'playgrounds': renderPlaygroundsPage,
+                    'templates_checklists': () => "<h2>Templates & Checklists</h2><p>Content from previous version.</p>", // Placeholder
+                    'glossary_faq': () => "<h2>Glossary & FAQ</h2><p>Content from previous version.</p>", // Placeholder
+                    'use_case_analyst': renderUseCasePage
+                };
+
+                const renderer = pageRenderers[pageId];
+                if (renderer) {
+                    html = renderer();
+                } else {
+                    html = `
+                        <h1 class="section-title">${sitemap.find(p => p.id === pageId)?.name || 'Page Not Found'}</h1>
                         <p class="section-subtitle">Content for this section is under construction.</p>
                     `;
                 }
+                
                 pageContent.innerHTML = html;
+                await renderMermaidDiagrams();
+            }
+
+            async function renderMermaidDiagrams() {
+                const diagrams = document.querySelectorAll('.mermaid-diagram-source');
+                for (const el of diagrams) {
+                    const spec = el.textContent;
+                    const { svg } = await mermaid.render(el.id, spec);
+                    const container = document.querySelector(`[data-mermaid-id="${el.id}"]`);
+                    if (container) {
+                        container.innerHTML = svg;
+                    }
+                }
+            }
+            
+            function createMermaidPlaceholder(id, spec) {
+                return `
+                    <div class="mermaid-diagram" data-mermaid-id="mermaid-${id}">
+                        <div class="text-slate-500">Loading Diagram...</div>
+                    </div>
+                    <pre id="mermaid-${id}" class="mermaid-diagram-source" style="display:none;">${spec}</pre>
+                `;
             }
 
             function renderHomePage() {
                 return `
                     <h1 class="section-title">Prompt Engineering & Multimodal RAG Playbook</h1>
                     <p class="section-subtitle">${data.purpose.why}</p>
-                    <div class="mt-8 grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <div class="card p-6">
-                            <h4>Who is this for?</h4>
-                            <p>${data.purpose.who}</p>
-                        </div>
-                        <div class="card p-6">
-                            <h4>Desired Outcomes</h4>
-                            <ul class="list-disc list-inside">${data.purpose.outcomes.map(o => `<li>${o}</li>`).join('')}</ul>
-                        </div>
-                    </div>
                     
                     <h2 class="mt-16">LLM System Anatomy</h2>
                     <p>A modern LLM system is more than a prompt. It's a pipeline where prompts, retrieval, tools, and guardrails work together to produce high-quality, safe, and verifiable results.</p>
-                    <div class="card mt-8 p-8">${renderDiagram(data.home.diagram, 'grid')}</div>
-
-                    <h2 class="mt-16">Choose Your Path</h2>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mt-6">
-                        <div class="card p-6 border-l-4 border-blue-500">
-                            <h4 class="text-blue-300">Executive Overview</h4>
-                            <p>Focus on value, risks, KPIs, and the criteria for a successful launch. <a href="#" class="text-blue-400 hover:underline">Start here for the 1-page summary.</a></p>
-                        </div>
-                        <div class="card p-6 border-l-4 border-purple-500">
-                            <h4 class="text-purple-300">Engineer Deep-Dive</h4>
-                            <p>Explore technical patterns, prompt specifications, and step-by-step checklists for implementation. <a href="#prompt_engineering" class="text-purple-400 hover:underline">Jump to Prompt Engineering.</a></p>
-                        </div>
-                    </div>
+                    <div class="mt-8">${createMermaidPlaceholder('home-diagram', data.home.diagram_spec)}</div>
                 `;
             }
 
@@ -422,208 +322,94 @@
                         </div>
                         <pre class="m-0 p-4 rounded-t-none !bg-slate-900/80"><code>${d.spec_template}</code></pre>
                     </div>
-
-                    <h2 class="mt-12">Common Patterns</h2>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
-                        ${d.patterns.map(p => `<div class="card p-4"><strong class="text-white">${p.name}</strong> &mdash; ${p.use}</div>`).join('')}
-                    </div>
-
-                    <h2 class="mt-12">Example: Vague vs. Optimized</h2>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-                        <div class="card p-6 border-l-4 border-red-500">
-                            <h4 class="text-red-400">Vague</h4>
-                            <p class="italic">"${d.example.vague}"</p>
-                            <p class="text-xs text-slate-500 mt-4">Fails because it lacks constraints on format, length, or tone, leading to unpredictable outputs.</p>
-                        </div>
-                        <div class="card p-6 border-l-4 border-green-500">
-                            <h4 class="text-green-400">Optimized</h4>
-                            <p class="italic">"${d.example.optimized}"</p>
-                             <p class="text-xs text-slate-500 mt-4">Succeeds by providing explicit, testable instructions for structure, length, and style.</p>
-                        </div>
-                    </div>
                 `;
             }
-
+            
             function renderRagFoundationsPage() {
-                const d = data.rag_foundations;
-                return `
+                 return `
                     <h1 class="section-title">RAG Foundations</h1>
                     <p class="section-subtitle">Thinking about text-first retrieval in a way that's ready for multimodal content.</p>
                     
                     <h2 class="mt-12">Retrieval Pipeline Overview</h2>
                     <p>This is the standard flow for how we ingest information, search it, and use it to generate a grounded answer.</p>
-                    <div class="card mt-8 p-8">${renderDiagram(d.diagram, 'flow')}</div>
-                    
-                    <div class="mt-12 grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <div class="card p-6">
-                            <h3>Key Design Choices</h3>
-                            <p>These must be made explicit for each RAG system.</p>
-                            <ul class="list-disc list-inside mt-4">${d.choices.map(c => `<li>${c}</li>`).join('')}</ul>
-                        </div>
-                        <div class="card p-6">
-                            <h3>Operational Considerations</h3>
-                            <p>How we maintain quality and security over time.</p>
-                            <ul class="list-disc list-inside mt-4">${d.ops.map(o => `<li>${o}</li>`).join('')}</ul>
-                        </div>
-                    </div>
+                    <div class="mt-8">${createMermaidPlaceholder('rag-foundations-diagram', data.rag_foundations.diagram_spec)}</div>
                 `;
             }
             
             function renderMultimodalRagPage() {
-                const d = data.multimodal_rag;
                 return `
                     <h1 class="section-title">Multimodal RAG</h1>
                     <p class="section-subtitle">Extending our RAG patterns to handle images, slides, audio, and video.</p>
                     
                     <h2 class="mt-12">Multimodal Ingestion Map</h2>
-                    <p>Each modality requires a specialized ingestion process to extract searchable text and metadata.</p>
-                    <div class="card mt-8 p-8">
-                        <div class="space-y-6">
-                        ${d.diagram.lanes.map(lane => `
-                            <div>
-                                <h4 class="font-semibold text-lg text-white">${lane.modality}</h4>
-                                <div class="flex items-center gap-2 mt-2">
-                                    ${lane.steps.map((step, i) => `
-                                        <div class="diagram-node !px-3 !py-1 !text-sm flex-shrink-0">${step}</div>
-                                        ${i < lane.steps.length - 1 ? `<div class="diagram-arrow">→</div>` : ''}
-                                    `).join('')}
+                    <p>Each modality requires a specialized ingestion process to extract searchable text and metadata, which are then unified for searching.</p>
+                    <div class="mt-8">${createMermaidPlaceholder('multimodal-rag-diagram', data.multimodal_rag.diagram_spec)}</div>
+                `;
+            }
+
+            function renderAgentsToolsPage() {
+                const d = data.agents_tools;
+                return `
+                    <h1 class="section-title">Agents & Tools</h1>
+                    <p class="section-subtitle">Moving beyond Q&A to systems that can take action.</p>
+                    
+                    <h2 class="mt-12">Core Concepts</h2>
+                    <p>An "agent" is an LLM-powered system that uses "tools" (functions) to interact with the outside world. This requires careful design around several key concepts.</p>
+                    <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                        ${d.concepts.map(c => `
+                            <div class="card p-6">
+                                <h3 class="!mt-0">${marked.parseInline(c.split(':')[0])}</h3>
+                                <p>${c.split(':').slice(1).join(':')}</p>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            }
+
+            function renderSafetyGovernancePage() {
+                const d = data.safety_governance;
+                return `
+                    <h1 class="section-title">Safety & Governance</h1>
+                    <p class="section-subtitle">Mitigating risks and ensuring compliance across our AI systems.</p>
+
+                    <h2 class="mt-12">Common Risks & Mitigations</h2>
+                    <div class="mt-6 space-y-4">
+                        ${d.risks.map(r => `
+                            <div class="card p-4 border-l-4 border-red-500/70">
+                                <h4 class="font-semibold text-red-300">${r.name}</h4>
+                                <p class="mt-1 text-sm"><strong class="text-slate-300">Mitigation:</strong> ${r.mitigation}</p>
+                            </div>
+                        `).join('')}
+                    </div>
+                    
+                    <h2 class="mt-12">Governance Policies</h2>
+                     <div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-6">
+                        ${d.governance.map(g => `
+                            <div class="card p-6">
+                                <h3 class="!mt-0">${g.split(':')[0]}</h3>
+                                <p>${g.split(':').slice(1).join(':')}</p>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            }
+            
+            function renderPlaygroundsPage() {
+                const d = data.playgrounds;
+                return `
+                    <h1 class="section-title">${d.title}</h1>
+                    <p class="section-subtitle">${d.subtitle}</p>
+                    
+                    <div class="mt-12 space-y-8">
+                        ${d.examples.map(ex => `
+                            <div class="card p-6">
+                                <h3 class="!mt-0">${ex.title}</h3>
+                                <p>${ex.description}</p>
+                                <div class="mt-4 p-4 bg-slate-950/70 rounded-lg border border-slate-800 space-y-2 text-sm">
+                                    ${ex.steps.map(step => `<div>${marked.parseInline(step)}</div>`).join('')}
                                 </div>
                             </div>
                         `).join('')}
-                        </div>
-                        <div class="text-center mt-8">
-                            <div class="text-2xl text-slate-500">↓</div>
-                            <div class="mt-2 inline-block diagram-node !bg-blue-600/30 !border-blue-500">${d.diagram.mergeInto}</div>
-                        </div>
-                    </div>
-                `;
-            }
-
-            function renderEvalsPage() {
-                const d = data.evals_monitoring;
-                return `
-                    <h1 class="section-title">Evals & Monitoring</h1>
-                    <p class="section-subtitle">How we know our systems are working correctly, safely, and efficiently.</p>
-                    
-                    <h2 class="mt-12">Plain-English Judging Rubric</h2>
-                    <div class="card mt-6 p-6 space-y-4">
-                        ${d.rubric.map(r => `<div><strong class="text-white">${r.name}:</strong> ${r.def}</div>`).join('')}
-                    </div>
-
-                    <h2 class="mt-12">Golden Set Example</h2>
-                    <p>A "golden" example from a test set, defining the expected output structure and content for a given prompt.</p>
-                    <div class="card mt-6">
-                        <div class="bg-slate-800/50 px-4 py-2 border-b border-slate-800 text-sm text-slate-400">finqa_017.json</div>
-                        <pre class="m-0 p-4 rounded-t-none !bg-slate-900/80"><code>${JSON.stringify(d.golden_set_example, null, 2)}</code></pre>
-                    </div>
-
-                    <h2 class="mt-12">Gates for Production</h2>
-                    <p>A release must meet these criteria before it can be deployed.</p>
-                    <ul class="checklist mt-4">${d.gates.map(g => `<li>${g}</li>`).join('')}</ul>
-                `;
-            }
-            
-            function renderPerfCostPage() {
-                const d = data.performance_cost;
-                return `
-                     <h1 class="section-title">Performance & Cost</h1>
-                    <p class="section-subtitle">Managing latency and token usage with non-technical levers.</p>
-                    
-                    <h2 class="mt-12">Key Levers</h2>
-                    <ul class="list-disc list-inside mt-4">${d.levers.map(l => `<li>${l}</li>`).join('')}</ul>
-
-                    <h2 class="mt-12">Example Latency Budget</h2>
-                    <p>We allocate a time budget to each step of the pipeline to identify and address bottlenecks.</p>
-                    <div class="card p-6 mt-6">
-                        <div class="flex justify-between items-baseline">
-                            <h4 class="text-white">Total Target</h4>
-                            <span class="text-2xl font-bold text-white">${d.budget.target_ms}ms</span>
-                        </div>
-                        <div class="w-full bg-slate-700 rounded-full h-8 mt-4 flex overflow-hidden">
-                            ${Object.entries(d.budget.allocation).map(([key, val]) => {
-                                const perc = (val / d.budget.target_ms) * 100;
-                                return `<div class="flex items-center justify-center text-xs font-medium text-white bg-blue-500/50 hover:bg-blue-500/80 transition" style="width: ${perc}%" title="${key}: ${val}ms">
-                                    <span class="hidden md:inline">${key}</span>
-                                </div>`;
-                            }).join('')}
-                        </div>
-                        <div class="mt-4">
-                            <strong>Degradation Strategy:</strong>
-                            <span class="text-slate-400">${d.budget.degrade_strategy.join(', ')}</span>
-                        </div>
-                    </div>
-                `;
-            }
-
-            function renderPatternsPage() {
-                const d = data.patterns_cookbook;
-                return `
-                    <h1 class="section-title">Patterns Cookbook</h1>
-                    <p class="section-subtitle">Copy-ready briefs for common RAG and Agentic patterns.</p>
-                    <div class="mt-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    ${d.map(p => `
-                        <div class="card p-6 flex flex-col">
-                            <h3 class="!mt-0">${p.name}</h3>
-                            <div class="flex-grow">
-                                <p><strong class="text-slate-300">Flow:</strong> ${p.flow}</p>
-                                <p><strong class="text-slate-300">Pitfalls:</strong> <span class="text-red-400/80">${p.pitfalls}</span></p>
-                            </div>
-                        </div>
-                    `).join('')}
-                    </div>
-                `;
-            }
-            
-            function renderTemplatesPage() {
-                const d = data.templates_checklists;
-                return `
-                    <h1 class="section-title">Templates & Checklists</h1>
-                    <p class="section-subtitle">Standardized lists to ensure quality and completeness before shipping.</p>
-                    
-                    <div class="mt-12 space-y-12">
-                        <div>
-                            <h2>Prompt PR Checklist</h2>
-                            <div class="card p-6 mt-4"><ul class="checklist !my-0">${d.prompt_pr.map(i => `<li>${i}</li>`).join('')}</ul></div>
-                        </div>
-                        <div>
-                            <h2>RAG Pipeline Checklist</h2>
-                            <div class="card p-6 mt-4"><ul class="checklist !my-0">${d.rag_pipeline.map(i => `<li>${i}</li>`).join('')}</ul></div>
-                        </div>
-                        <div>
-                            <h2>Launch Gate (Go/No-Go)</h2>
-                            <div class="card p-6 mt-4"><ul class="checklist !my-0">${d.launch_gate.map(i => `<li>${i}</li>`).join('')}</ul></div>
-                        </div>
-                    </div>
-                `;
-            }
-            
-            function renderGlossaryFaqPage() {
-                return `
-                    <h1 class="section-title">Glossary & FAQ</h1>
-                    <p class="section-subtitle">Shared language and quick answers to common questions.</p>
-                    <div class="mt-12 grid grid-cols-1 lg:grid-cols-2 gap-12">
-                        <div>
-                            <h2>Glossary</h2>
-                            <dl class="mt-6 space-y-4">
-                                ${Object.entries(data.glossary).map(([term, def]) => `
-                                    <div class="card p-4">
-                                        <dt class="font-semibold text-white">${term}</dt>
-                                        <dd class="mt-1 text-slate-400">${def}</dd>
-                                    </div>
-                                `).join('')}
-                            </dl>
-                        </div>
-                        <div>
-                            <h2>FAQ</h2>
-                            <div class="mt-6 space-y-4">
-                                ${data.faq.map(item => `
-                                    <div class="card p-4">
-                                        <h4 class="font-semibold text-white">${item.q}</h4>
-                                        <p class="mt-1 text-slate-400">${item.a}</p>
-                                    </div>
-                                `).join('')}
-                            </div>
-                        </div>
                     </div>
                 `;
             }
@@ -636,90 +422,12 @@
                         <p class="text-blue-200 text-lg leading-relaxed">${d.scenario}</p>
                     </div>
 
-                    <h2>Desired Output & Rules</h2>
-                    <div class="card p-6 mt-6">
-                        <ul class="checklist">${d.output_rules.map(r => `<li>${r}</li>`).join('')}</ul>
-                    </div>
-                    
-                    <h2 class="mt-12">Complete Prompt Flow</h2>
-                    <p>This chain of prompts collaborates to turn a user question into a grounded, multi-source answer.</p>
-                    <div class="mt-6 space-y-6">
-                        ${d.prompt_flow.map(p => `
-                            <div class="card overflow-hidden">
-                                <div class="p-6">
-                                    <h3 class="!mt-0">${p.title}</h3>
-                                    <p class="text-sm text-blue-300"><strong>Goal:</strong> ${p.goal}</p>
-                                    <pre class="!text-sm"><code>${p.content}</code></pre>
-                                    ${p.example ? `
-                                        <div class="mt-4">
-                                            <strong class="text-xs text-slate-400 font-mono">EXAMPLE OUTPUT</strong>
-                                            <div class="mt-1 p-3 bg-slate-950 rounded-md text-sm text-slate-300 whitespace-pre-wrap font-mono">${p.example}</div>
-                                        </div>
-                                    ` : ''}
-                                </div>
-                            </div>
-                        `).join('')}
-                    </div>
-
                     <h2 class="mt-12">Flow Diagram</h2>
-                    <div class="card mt-6 p-8">${renderDiagram(d.diagram, 'flow')}</div>
-
-                    <h2 class="mt-12">Acceptance Criteria</h2>
-                    <p>What "good" looks like for this use case.</p>
-                    <div class="card p-6 mt-6">
-                        <ul class="checklist">${d.acceptance_criteria.map(r => `<li>${r}</li>`).join('')}</ul>
-                    </div>
+                    <p>This chain of prompts collaborates to turn a user question into a grounded, multi-source answer.</p>
+                    <div class="mt-6">${createMermaidPlaceholder('use-case-diagram', d.diagram_spec)}</div>
                 `;
             }
-            
-            function renderDiagram(spec, layout = 'grid') {
-                if (layout === 'flow') {
-                    return `
-                        <div class="flex flex-wrap items-center justify-center gap-x-4 gap-y-2">
-                            ${spec.nodes.map((node, i) => `
-                                <div class="diagram-node">${node.label}</div>
-                                ${i < spec.nodes.length - 1 ? `<div class="diagram-arrow">→</div>` : ''}
-                            `).join('')}
-                        </div>
-                    `;
-                }
-                // Default grid layout for more complex flows
-                const nodeMap = spec.nodes.reduce((acc, node) => ({ ...acc, [node.id]: node.label }), {});
-                return `
-                    <div class="grid grid-cols-3 gap-x-8 gap-y-6 items-center text-center">
-                        <div class="diagram-node">${nodeMap.user}</div>
-                        <div class="diagram-arrow">→</div>
-                        <div class="diagram-node col-span-2">${nodeMap.prompt}</div>
 
-                        <div></div>
-                        <div class="diagram-arrow">↑↓</div>
-                        <div></div>
-
-                        <div class="diagram-node">${nodeMap.retrieval}</div>
-                        <div class="diagram-arrow">↔</div>
-                        <div class="diagram-node">${nodeMap.tools}</div>
-                        
-                        <div></div>
-                        <div class="diagram-arrow">↓</div>
-                        <div></div>
-                        
-                        <div class="diagram-node col-span-3">${nodeMap.guardrails}</div>
-
-                        <div></div>
-                        <div class="diagram-arrow">↓</div>
-                        <div></div>
-
-                        <div class="diagram-node col-span-3">${nodeMap.answer}</div>
-
-                        <div></div>
-                        <div class="diagram-arrow">↑</div>
-                        <div></div>
-
-                        <div class="diagram-node col-span-3">${nodeMap.evals}</div>
-                    </div>
-                `;
-            }
-            
             window.copyToClipboard = function(button) {
                 const content = button.dataset.copyContent;
                 const textarea = document.createElement('textarea');
@@ -737,7 +445,7 @@
             }
 
             // --- Initialization ---
-            navigation.innerHTML = data.sitemap.map(page =>
+            navigation.innerHTML = sitemap.map(page =>
                 `<a href="#${page.id}" class="nav-link block">${page.name}</a>`
             ).join('');
 
