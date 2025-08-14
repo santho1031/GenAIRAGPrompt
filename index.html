@@ -104,6 +104,7 @@
             { "id": "use_case_analyst", "name": "Use Case: Earnings Analyst" }
         ],
         "home": {
+            "audio_src": "https://raw.githubusercontent.com/santho1031/GenAIRAGPrompt/main/data/audio/Adaptive%20GenAI%20Systems.mp3",
             "diagram_spec": "graph TD\n    User --> A[Prompt Engineering]\n    A --> B{Retrieval}\n    A --> C{Tools}\n    B --> A\n    C --> A\n    A --> D[Guardrails]\n    D --> E[Answer + Citations]\n    E --> F(Evals & Monitoring)\n    F --> A\n\n    style User fill:#2563eb,stroke:#fff,stroke-width:2px\n    style E fill:#16a34a,stroke:#fff,stroke-width:2px"
         },
         "prompt_engineering": {
@@ -293,11 +294,38 @@
                 `;
             }
 
+            function renderAudioPlayer(audioSrc) {
+                return `
+                    <div class="my-12">
+                        <div class="card p-6 md:p-8">
+                            <div class="flex flex-col md:flex-row items-center gap-6">
+                                <div class="flex-shrink-0">
+                                    <div class="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center shadow-lg">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-10 h-10 text-white">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 01-3-3V4.5a3 3 0 116 0v8.25a3 3 0 01-3 3z" />
+                                        </svg>
+                                    </div>
+                                </div>
+                                <div class="w-full">
+                                    <h3 class="text-xl font-bold text-white !mt-0">Audio Overview</h3>
+                                    <p class="text-slate-400 mt-1 text-sm">Listen to a 90-second overview of the core concepts behind building adaptive, production-ready GenAI systems.</p>
+                                    <audio controls class="w-full mt-4" src="${audioSrc}">
+                                        Your browser does not support the audio element.
+                                    </audio>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
             function renderHomePage() {
                 return `
                     <h1 class="section-title">Prompt Engineering & Multimodal RAG Playbook</h1>
                     <p class="section-subtitle">${data.purpose.why}</p>
                     
+                    ${renderAudioPlayer(data.home.audio_src)}
+
                     <h2 class="mt-16">LLM System Anatomy</h2>
                     <p>A modern LLM system is more than a prompt. It's a pipeline where prompts, retrieval, tools, and guardrails work together to produce high-quality, safe, and verifiable results.</p>
                     <div class="mt-8">${createMermaidPlaceholder('home-diagram', data.home.diagram_spec)}</div>
